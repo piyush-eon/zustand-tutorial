@@ -1,103 +1,87 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { create } from "zustand";
-import { devtools } from "zustand/middleware";
-// import { persist, createJSONStorage } from "zustand/middleware";
+import { persist, createJSONStorage } from "zustand/middleware";
 
-export interface Habit {
-  id: string;
+export interface Task {
+  id: number;
   name: string;
-  frequency: "daily" | "weekly";
-  completedDates: string[];
-  createdAt: string;
+  checked: boolean;
 }
 
-interface HabitState {
-  habits: Habit[];
+export interface taskState {
+  tasks: Task[];
   isLoading: boolean;
   error: string | null;
-  addHabit: (name: string, frequency: "daily" | "weekly") => void;
-  removeHabit: (id: string) => void;
-  toggleHabit: (id: string, date: string) => void;
-  fetchHabits: () => Promise<void>;
+  filter: string;
+
+  addTask: (task: Task) => void;
+  removeTask: (id: number) => void;
+  toggleTask: (id: number) => void;
+  fetchTasks: () => Promise<void>;
+
+  setFilter: (filter: string) => void;
 }
 
-const useHabitStore = create<HabitState>()(
-  devtools(
-    //   persist(
-    (set, get) => ({
-      habits: [],
+const useTaskStore = create<taskState>()(
+  persist( 
+    (set) => ({
+      filter: 'all',
+      tasks: [],
       isLoading: false,
       error: null,
-      addHabit: (name, frequency) =>
+      addTask: (task) =>
         set((state) => ({
-          habits: [
-            ...state.habits,
-            {
-              id: Date.now().toString(),
-              name,
-              frequency,
-              completedDates: [],
-              createdAt: new Date().toISOString(),
-            },
-          ],
+          tasks: [...state.tasks, {...task, checked: false}],
         })),
-      removeHabit: (id) =>
+      removeTask: (id) =>
         set((state) => ({
-          habits: state.habits.filter((habit) => habit.id !== id),
+          tasks: state.tasks.filter((task) => task.id !== id),
         })),
-      toggleHabit: (id, date) =>
-        set((state) => ({
-          habits: state.habits.map((habit) =>
-            habit.id === id
-              ? {
-                  ...habit,
-                  completedDates: habit.completedDates.includes(date)
-                    ? habit.completedDates.filter((d) => d !== date)
-                    : [...habit.completedDates, date],
-                }
-              : habit
+      toggleTask: (id) => set((state) => ({
+          tasks: state.tasks.map((task) =>
+            task.id === id ? {...task, checked: !task.checked} : task
           ),
         })),
-      fetchHabits: async () => {
-        set({ isLoading: true });
+      fetchTasks: async () => {
+        set((state) => {
+          if (state.tasks.length > 0) {
+            return {};
+          }
+          return { isLoading: true };
+        });
         try {
-          //   // Check if we already have habits in the store
-          //   const currentHabits = get().habits;
-          //   if (currentHabits.length > 0) {
-          //     set({ isLoading: false });
-          //     return;
-          //   }
-
-          // Simulating an API call only if we don't have habits
+          // Simulating an API call only if we don't have tasks
           await new Promise((resolve) => setTimeout(resolve, 1000));
-          const mockHabits: Habit[] = [
+          const mocktasks: Task[] = [
             {
-              id: "1",
+              id: 1,
               name: "Read",
-              frequency: "daily",
-              completedDates: [],
-              createdAt: new Date().toISOString(),
+              checked: false,
             },
             {
-              id: "2",
-              name: "Exercise",
-              frequency: "daily",
-              completedDates: [],
-              createdAt: new Date().toISOString(),
+              id: 2,
+              name: "Homework",
+              checked: false,
             },
           ];
-          set({ habits: mockHabits, isLoading: false });
+          // This is so it doesn't reset to mocktasks on refresh
+          set( ( state ) => {
+            if ( state.tasks.length > 0 ) {
+              return { isLoading:false};
+            }
+            return { tasks: mocktasks, isLoading: false};
+          })
         } catch (error) {
-          set({ error: "Failed to fetch habits", isLoading: false });
+          set({ error: "Failed to fetch tasks", isLoading: false });
         }
       },
-    })
-    //     {
-    //       name: "habit-storage",
-    //       storage: createJSONStorage(() => localStorage),
-    //     }
-    //   )
-  )
+      setFilter: (filter: string) => set(() => ({filter})),
+    }),
+    {
+      name: "test-store",
+      storage: createJSONStorage(() => localStorage),
+    }
+  ), 
 );
 
-export default useHabitStore;
+export default useTaskStore;
