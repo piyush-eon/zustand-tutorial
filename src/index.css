@@ -1,0 +1,9 @@
+[type="submit"] {
+    color: pink;
+}
+
+button {
+    background-color: pink;
+    color: white;
+    size: 20pt;
+}

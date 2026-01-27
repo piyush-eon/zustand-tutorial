@@ -1,26 +1,25 @@
 import React, { useEffect } from "react";
 import { Container, Typography, Box } from "@mui/material";
-import AddHabitForm from "./components/add-habit-form";
-import HabitList from "./components/habit-list";
-import HabitStats from "./components/habit-stats";
-import useHabitStore from "./store/store";
+import AddTaskForm from "./components/add-task-form";
+import TaskList from "./components/task-list";
+//import HabitStats from "./components/habit-stats";
+import useTaskStore from "./store/store";
 
 const App: React.FC = () => {
-  const { fetchHabits } = useHabitStore();
+  const { fetchTasks } = useTaskStore();
 
   useEffect(() => {
-    fetchHabits();
-  }, []);
+    fetchTasks();
+  }, [fetchTasks]);
 
   return (
     <Container maxWidth="md">
       <Box sx={{ my: 4 }}>
         <Typography variant="h2" component="h1" gutterBottom align="center">
-          Habit Tracker
+          Task Tracker
         </Typography>
-        <AddHabitForm />
-        <HabitList />
-        <HabitStats />
+        <AddTaskForm />
+        <TaskList />
       </Box>
     </Container>
   );
